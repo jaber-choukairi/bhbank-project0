@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Vérification Faciale</title>
+    <link rel="stylesheet" href="/static/css/style1.css">
+    <style>
+        .login-logo {
+            display: block;
+            margin: 0 auto 20px auto;
+            width: 120px;
+        }
+
+        .comparison-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .face-box {
+            text-align: center;
+        }
+
+        .face-box img, .face-box canvas {
+            width: 180px;
+            height: 180px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        #capture {
+            display: block;
+            margin: 30px auto 10px auto;
+            background-color: #b30000;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #capture:hover {
+            background-color: #990000;
+        }
+
+        .info-text {
+            text-align: center;
+            margin-top: 10px;
+            color: #555;
+        }
+    </style>
+    <script>
+        let video, canvas, context;
+
+        window.onload = function () {
+            video = document.getElementById("video");
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d");
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    video.srcObject = stream;
+                    video.play();
+                });
+
+            document.getElementById("capture").onclick = function () {
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const dataURL = canvas.toDataURL("image/jpeg");
+                document.getElementById("face_image").value = dataURL;
+                document.getElementById("face-form").submit();
+            };
+        };
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-logo">
+            <img src="/static/css/bh_logo.png" alt="BH Bank">
+            <span class="bank-name">BH Bank</span>
+        </div>
+        <div class="navbar-links">
+            <a href="/">Accueil</a>
+            <a href="/login">Connexion</a>
+        </div>
+    </nav>
+
+    <div class="login-container">
+        <div class="login-box">
+            <img src="/static/css/bh_logo.png" alt="Logo BH Bank" class="login-logo">
+            <h2>📸 Vérification Faciale</h2>
+            <p style="text-align: center; color: green;">Redirection vers la vérification faciale réussie ✅</p>
+            <p class="login-subtext">Veuillez comparer votre visage actuel avec l'image enregistrée.</p>
+
+            <div class="comparison-container">
+                <!-- Visage enregistré -->
+                <div class="face-box">
+                    <p>Visage enregistré</p>
+                    <img src="/static/faces/face_{{ user_id }}.jpg" alt="Visage enregistré">
+                </div>
+
+                <!-- Capture en direct -->
+                <div class="face-box">
+                    <p>Caméra en direct</p>
+                    <video id="video" width="180" height="180" autoplay muted></video>
+                    <canvas id="canvas" width="180" height="180" style="display: none;"></canvas>
+                </div>
+            </div>
+
+            <form id="face-form" method="post" action="/verify-face">
+                <input type="hidden" name="username" value="{{ username }}">
+                <input type="hidden" name="face_image" id="face_image">
+                <button type="button" id="capture">📷 Capturer et Vérifier</button>
+            </form>
+
+            <p class="info-text">Votre webcam ne fonctionne pas ? <a href="/login">Revenir</a></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+jinja2
+face_recognition
+pillow
+python-multipart
+email-validator
+opencv-python
+dlib

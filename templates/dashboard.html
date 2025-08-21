@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Employés</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=4">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<header class="navbar">
+    <div class="navbar-left">
+        <img src="/static/css/bh_logo.png" alt="BH Bank Logo" class="logo">
+        <span class="bank-title">BH Bank</span>
+    </div>
+    <div class="navbar-right">
+        <span class="user">👤 Employé</span>
+        <a href="/logout" class="logout-btn">Déconnexion</a>
+    </div>
+</header>
+
+<main class="main-layout">
+    <aside class="sidebar">
+        <h2 class="menu-title">Menu</h2>
+        <nav class="menu-buttons">
+            <button class="btn-menu">Gestion des habilitations</button>
+            <button class="btn-menu">Paramétrages</button>
+            <button class="btn-menu">KPI</button>
+            <button class="btn-menu">Piste d’audit</button>
+            <button class="btn-menu">Editique</button>
+        </nav>
+    </aside>
+
+    <section class="content-area">
+        <div id="welcome-content">
+            <h1>Bienvenue</h1>
+            <p>Sélectionnez une option dans le menu pour continuer.</p>
+        </div>
+
+        <div id="parametrages-content" class="hidden">
+            <h2 id="apps-title">📄 Applications disponibles</h2>
+
+
+            <div id="apps-table-wrapper">
+                <table class="table-apps">
+                    <thead>
+                        <tr>
+                            <th>Nom d’Application</th>
+                            <th>Modifier Application</th>
+                            <th>Afficher informations</th>
+                        </tr>
+                    </thead>
+                    <tbody id="apps-body">
+                        <!-- Contenu généré dynamiquement -->
+                    </tbody>
+                </table>
+            </div>
+
+<form id="form-info" class="hidden form-container">
+    <h3 class="form-title">📝 Informations de l'application</h3>
+    <input type="hidden" id="form-id">
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="form-nom">Nom de l'Application</label>
+            <input type="text" id="form-nom" readonly>
+        </div>
+        <div class="form-group">
+            <label for="form-ip">Adresse IP de l'Application</label>
+            <input type="text" id="form-ip" readonly>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="form-ip-bdd">Adresse IP de la base de données</label>
+            <input type="text" id="form-ip-bdd" readonly>
+        </div>
+        <div class="form-group">
+            <label for="form-mode">Mode d'exécution</label>
+            <input type="text" id="form-mode" readonly>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="form-commande">Commande / Requête</label>
+        <input type="text" id="form-commande" readonly>
+    </div>
+
+    <div class="form-group checkbox-group">
+        <label for="form-active">Active</label>
+        <input type="checkbox" id="form-active" disabled>
+    </div>
+
+    <div class="form-actions">
+        <button type="button" class="btn-role" onclick="retourListe()">← Retour à la liste</button>
+    </div>
+</form>
+
+
+            <div style="margin-top: 20px; text-align: left;">
+                <a href="#" style="color: #00adb3; text-decoration: none; font-weight: bold;">➕ Ajouter une application</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- ✅ SCRIPT COMPLET -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Menu latéral
+    document.querySelectorAll(".btn-menu").forEach(button => {
+        button.addEventListener("click", function () {
+            const label = this.textContent.trim();
+            document.getElementById("welcome-content").style.display = "none";
+            document.getElementById("parametrages-content").style.display = "none";
+            if (label === "Paramétrages") {
+                document.getElementById("parametrages-content").style.display = "block";
+                loadApplications();
+            }
+        });
+    });
+
+    // Charger les applications
+    function loadApplications() {
+        fetch("/applications")
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById("apps-body");
+                tbody.innerHTML = "";
+
+                data.forEach(app => {
+                    const row = `
+                        <tr>
+                            <td>${app.nom}</td>
+                            <td><button class="btn-role" onclick="editApp(${app.id})">Modifier</button></td>
+                            <td><button class="btn-role" onclick="showApp(${app.id})">Afficher informations</button></td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            })
+            .catch(err => console.error("❌ Erreur chargement :", err));
+    }
+
+    // Afficher informations
+    window.showApp = function(id) {
+        fetch(`/application/${id}`)
+            .then(res => res.json())
+            .then(app => {
+                document.getElementById("form-id").value = app.id;
+                document.getElementById("form-nom").value = app.nom;
+                document.getElementById("form-ip").value = app.adresse_ip;
+                document.getElementById("form-ip-bdd").value = app.ip_base_donnees;
+                document.getElementById("form-mode").value = app.mode_execution;
+                document.getElementById("form-commande").value = app.commande || "";
+                document.getElementById("form-active").checked = !!app.active;
+
+                document.getElementById("apps-table-wrapper").classList.add("hidden");
+                document.getElementById("form-info").classList.remove("hidden");
+                document.getElementById("apps-title").classList.add("hidden");
+
+            });
+    };
+
+    // Retour à la liste
+    window.retourListe = function() {
+        document.getElementById("form-info").classList.add("hidden");
+        document.getElementById("apps-table-wrapper").classList.remove("hidden");
+        document.getElementById("apps-title").classList.remove("hidden");
+
+    };
+
+    // Placeholder pour le bouton Modifier (non encore implémenté)
+   window.editApp = function(id) {
+    fetch(`/application/${id}`)
+        .then(res => res.json())
+        .then(app => {
+            document.getElementById("form-id").value = app.id;
+            document.getElementById("form-nom").value = app.nom;
+            document.getElementById("form-ip").value = app.adresse_ip;
+            document.getElementById("form-ip-bdd").value = app.ip_base_donnees;
+            document.getElementById("form-mode").value = app.mode_execution;
+            document.getElementById("form-commande").value = app.commande || "";
+            document.getElementById("form-active").checked = !!app.active;
+
+            // Rendre les champs modifiables
+            document.querySelectorAll("#form-info input").forEach(input => {
+                input.removeAttribute("readonly");
+                input.removeAttribute("disabled");
+            });
+
+            document.getElementById("apps-table-wrapper").classList.add("hidden");
+            document.getElementById("form-info").classList.remove("hidden");
+            document.getElementById("apps-title").classList.add("hidden");
+
+            // Ajouter bouton de sauvegarde si pas encore présent
+            if (!document.getElementById("save-btn")) {
+                const saveBtn = document.createElement("button");
+                saveBtn.id = "save-btn";
+                saveBtn.className = "btn-role";
+                saveBtn.textContent = "💾 Enregistrer";
+                saveBtn.onclick = submitFormUpdate;
+                document.querySelector(".form-actions").appendChild(saveBtn);
+            }
+        });
+    function submitFormUpdate() {
+    const appData = {
+        id: document.getElementById("form-id").value,
+        nom: document.getElementById("form-nom").value,
+        adresse_ip: document.getElementById("form-ip").value,
+        ip_base_donnees: document.getElementById("form-ip-bdd").value,
+        mode_execution: document.getElementById("form-mode").value,
+        commande: document.getElementById("form-commande").value,
+        active: document.getElementById("form-active").checked
+    };
+
+    fetch(`/application/${appData.id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(appData)
+    })
+    .then(res => {
+        if (res.ok) {
+            alert("✅ Application mise à jour avec succès !");
+            retourListe();
+            loadApplications();
+        } else {
+            alert("❌ Erreur lors de la mise à jour.");
+        }
+    });
+}
+
+};
+
+});
+</script>
+</body>
+</html>

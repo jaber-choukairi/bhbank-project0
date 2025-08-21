@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>BH Bank - Connexion</title>
+    <link rel="stylesheet" href="/static/css/style1.css">
+    <style>
+        .login-logo {
+            display: block;
+            margin: 0 auto 20px auto;
+            width: 120px;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .message {
+            color: green;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        #video, #canvas {
+            display: none;
+            margin: 10px auto;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-logo">
+            <img src="/static/css/bh_logo.png" alt="BH Bank">
+            <span class="bank-name">BH Bank</span>
+        </div>
+        <div class="navbar-links">
+            <a href="#">Accueil</a>
+            <a href="#">Aide</a>
+        </div>
+    </nav>
+
+    <div class="login-container">
+        <div class="login-box">
+            <img src="/static/css/bh_logo.png" alt="Logo BH Bank" class="login-logo">
+            <h2>👤 Connexion Client</h2>
+            <p class="login-subtext">Merci de vous authentifier pour accéder à votre espace BH Bank.</p>
+
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+            {% if info %}
+                <p class="message">{{ info }}</p>
+            {% endif %}
+
+            <form method="post" action="/verify-password">
+
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username" required>
+
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+
+
+                <video id="video" width="300" autoplay></video>
+                <canvas id="canvas" width="300" height="300"></canvas>
+                <input type="hidden" name="face_image" id="face_image">
+
+                <input type="submit" value="🔐 Se connecter">
+            </form>
+
+            <p class="login-footer">Mot de passe oublié ? <a href="/forgot-password">Cliquez ici</a></p>
+            <p class="login-footer">Pas encore inscrit ? <a href="/register">Créer un compte</a></p>
+
+        </div>
+    </div>
+
+<script src="/static/js/login.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Enregistrement Visage - BH Bank</title>
+    <link rel="stylesheet" href="/static/css/style1.css">
+    <style>
+        video, canvas {
+            display: block;
+            margin: 10px auto;
+            border-radius: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .message {
+            color: green;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <h2>📸 Enregistrer mon visage</h2>
+            <p>Utilisez le bouton ci-dessous pour capturer votre visage.</p>
+
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+            {% if info %}
+                <p class="message">{{ info }}</p>
+            {% endif %}
+
+            <form method="post" action="/register-face">
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur</label>
+                    <input type="text" name="username"
+                           value="{{ request.query_params.get('username') or '' }}"
+                           readonly required>
+                </div>
+
+                <div class="form-group">
+                    <button type="button" id="start-camera">🎥 Démarrer la caméra</button>
+                    <button type="button" id="capture-btn" disabled>📸 Capturer le visage</button>
+                </div>
+
+                <video id="video" width="300" autoplay class="hidden"></video>
+                <canvas id="canvas" width="300" height="300" class="hidden"></canvas>
+                <input type="hidden" name="face_image" id="face_image">
+
+                <input type="submit" value="💾 Enregistrer mon visage">
+            </form>
+
+            <p class="login-footer">Déjà enregistré ? <a href="/login">Retour à la connexion</a></p>
+        </div>
+    </div>
+
+<script>
+    const startBtn = document.getElementById("start-camera");
+    const captureBtn = document.getElementById("capture-btn");
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const faceInput = document.getElementById("face_image");
+
+    let stream = null;
+
+    startBtn.addEventListener("click", async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            video.classList.remove("hidden");
+            canvas.classList.remove("hidden");
+            captureBtn.disabled = false;
+        } catch (err) {
+            alert("Erreur d'accès à la caméra.");
+            console.error(err);
+        }
+    });
+
+    captureBtn.addEventListener("click", () => {
+        const context = canvas.getContext("2d");
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL("image/png");
+        faceInput.value = imageData;
+
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+        alert("✅ Visage capturé ! Cliquez sur 'Enregistrer' pour valider.");
+    });
+
+    document.querySelector("form").addEventListener("submit", function (e) {
+        if (!faceInput.value) {
+            e.preventDefault();
+            alert("Veuillez capturer votre visage avant de soumettre.");
+        }
+    });
+</script>
+</body>
+</html>
